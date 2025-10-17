@@ -1,12 +1,10 @@
 'use client'
 import { FormEvent, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
-import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle'|'sending'|'sent'|'error'>('idle')
-  const router = useRouter()
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()

@@ -11,7 +11,7 @@ export default function AuthCallback() {
     let active = true
     ;(async () => {
       try {
-        // If a session already exists (e.g., hash link flows), skip exchange.
+        // If a session already exists, skip the exchange.
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) {
           const url = new URL(window.location.href)
@@ -22,7 +22,7 @@ export default function AuthCallback() {
           }
         }
         if (active) router.replace('/app')
-      } catch (e:any) {
+      } catch (e) {
         console.error(e)
         if (active) setMsg('Sign-in failed. Please try again.')
       }
@@ -32,3 +32,4 @@ export default function AuthCallback() {
 
   return <div className="p-6">{msg}</div>
 }
+
