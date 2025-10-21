@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
 export default function ChatPage() {
@@ -17,6 +17,7 @@ export default function ChatPage() {
   const [loadingDeals, setLoadingDeals] = useState(false)
   const chatEndRef = useRef<HTMLDivElement | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // 🧭 Scroll to bottom when messages change
   useEffect(() => {
@@ -93,6 +94,41 @@ Do not use emojis. Keep under 120 words.
     setMessages([{ role: 'assistant', content: reply }])
   }
 
+  // 🧩 Load conversation if an ID is in the URL
+  useEffect(() => {
+    const idFromUrl = searchParams.get('id')
+    if (!idFromUrl) return
+    setConversationId(idFromUrl)
+
+    const loadOldMessages = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session?.user) {
+        router.push('/')
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', idFromUrl)
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('Error loading old messages:', error)
+      } else if (data && data.length > 0) {
+        const formatted = data.map((m) => ({
+          role: m.role,
+          content: m.content,
+        }))
+        setMessages(formatted)
+      }
+    }
+
+    loadOldMessages()
+  }, [searchParams, router])
+
   // 💬 Send message
   const sendMessage = async () => {
     if (!input.trim() || loading) return
@@ -114,7 +150,8 @@ Do not use emojis. Keep under 120 words.
     }
 
     // Only create conversation for real messages
-    if (!conversationId && userMsg.length > 2) {
+    let convoId = conversationId
+    if (!convoId && userMsg.length > 2) {
       const baseName = user.email?.split('@')[0] || 'camper'
       const { data: convo, error } = await supabase
         .from('conversations')
@@ -124,7 +161,8 @@ Do not use emojis. Keep under 120 words.
         })
         .select()
         .single()
-      if (!error && convo) setConversationId(convo.id)
+      if (!error && convo) convoId = convo.id
+      setConversationId(convoId)
     }
 
     const outdoorPrompt = `You are a helpful outdoor-activity assistant.
@@ -142,10 +180,10 @@ User says: ${userMsg}`
     const reply = data.reply || 'No response.'
     setMessages((m) => [...m, { role: 'assistant', content: reply }])
 
-    if (conversationId) {
+    if (convoId) {
       await supabase.from('messages').insert([
-        { conversation_id: conversationId, role: 'user', content: userMsg },
-        { conversation_id: conversationId, role: 'assistant', content: reply },
+        { conversation_id: convoId, role: 'user', content: userMsg },
+        { conversation_id: convoId, role: 'assistant', content: reply },
       ])
     }
 
