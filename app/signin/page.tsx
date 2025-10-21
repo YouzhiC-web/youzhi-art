@@ -20,7 +20,7 @@ export default function SignInPage() {
       setMessage(error.message)
     } else {
       setMessage('✅ Account created! Redirecting to login...')
-      setTimeout(() => router.push('/login'), 1500)
+      setTimeout(() => router.push('/'), 1500)
     }
   }
 
@@ -88,7 +88,7 @@ export default function SignInPage() {
           <button
             type="button"
             className="text-sky-600 hover:underline"
-            onClick={() => router.push('/login')}
+            onClick={() => router.push('/')}
           >
             Log In
           </button>

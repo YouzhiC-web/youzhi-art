@@ -28,7 +28,7 @@ export default function ChatPage() {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser()
       if (!data.user) {
-        router.push('/login')
+        router.push('/')
         return
       }
       setUser(data.user)
@@ -168,7 +168,7 @@ User says: ${userMsg}`
   // 🚪 Log out
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    router.push('/login')
+    router.push('/')
   }
 
   return (

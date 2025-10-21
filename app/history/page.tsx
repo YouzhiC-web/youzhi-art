@@ -11,7 +11,7 @@ export default function HistoryPage() {
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
-        router.push('/login')
+        router.push('/')
         return
       }
       const { data: convos } = await supabase
